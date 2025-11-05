@@ -23,15 +23,13 @@ namespace SeleniumTests
             wait = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
         }
 
-        // Test de diagnóstico - EJECUTA ESTE PRIMERO
         [Test, Order(0)]
         public void Diagnostic_FindCorrectUrls()
         {
             try
             {
-                TestContext.WriteLine("=== DIAGNÓSTICO DE LA APLICACIÓN ===\n");
+                TestContext.WriteLine("DIAGNÓSTICO DE LA APLICACIÓN\n");
 
-                // 1. Verificar que la app está corriendo
                 driver.Navigate().GoToUrl(BASE_URL);
                 System.Threading.Thread.Sleep(2000);
 
@@ -39,7 +37,6 @@ namespace SeleniumTests
                 TestContext.WriteLine($"  Título: {driver.Title}");
                 TestContext.WriteLine($"  URL final: {driver.Url}\n");
 
-                // 2. Buscar enlaces relacionados con productos
                 var links = driver.FindElements(By.TagName("a"));
                 TestContext.WriteLine("📋 Enlaces encontrados relacionados con productos:");
 
@@ -54,7 +51,6 @@ namespace SeleniumTests
                     }
                 }
 
-                // 3. Intentar URLs comunes para crear productos
                 string[] possibleUrls = {
                     "/product/new",
                     "/products/new",
@@ -81,7 +77,6 @@ namespace SeleniumTests
                             TestContext.WriteLine($"   Título: {driver.Title}");
                             TestContext.WriteLine($"   Formularios: {forms.Count}");
 
-                            // Buscar campos de entrada
                             var inputs = driver.FindElements(By.TagName("input"));
                             TestContext.WriteLine($"   Campos de entrada encontrados:");
 
@@ -108,7 +103,6 @@ namespace SeleniumTests
                     }
                 }
 
-                // 4. Mostrar HTML de la página actual
                 TestContext.WriteLine("\n📄 HTML de la última página (primeros 1000 caracteres):");
                 TestContext.WriteLine(driver.PageSource.Substring(0, Math.Min(1000, driver.PageSource.Length)));
 
@@ -122,14 +116,12 @@ namespace SeleniumTests
             }
         }
 
-        // Método auxiliar mejorado con espera explícita
         private IWebElement FindElementByIdOrName(string fieldIdentifier, int timeoutSeconds = 10)
         {
             var localWait = new WebDriverWait(driver, TimeSpan.FromSeconds(timeoutSeconds));
 
             try
             {
-                // Intentar por ID primero (Thymeleaf genera id="productId")
                 return localWait.Until(d => {
                     try
                     {
@@ -178,13 +170,11 @@ namespace SeleniumTests
         {
             try
             {
-                // CAMBIA ESTA URL según el resultado del test de diagnóstico
                 string createProductUrl = $"{BASE_URL}/product/new";
 
                 TestContext.WriteLine($"📍 Navegando a: {createProductUrl}");
                 driver.Navigate().GoToUrl(createProductUrl);
 
-                // Esperar carga de página
                 System.Threading.Thread.Sleep(2000);
 
                 TestContext.WriteLine($"   Título página: {driver.Title}");
@@ -197,7 +187,6 @@ namespace SeleniumTests
 
                 TestContext.WriteLine($"   Formularios encontrados: {forms.Count}");
 
-                // Llenar el formulario
                 string uniqueId = $"PROD-{DateTime.Now:yyyyMMddHHmmss}";
 
                 TestContext.WriteLine($"✏️  Llenando formulario con ID: {uniqueId}");
@@ -222,25 +211,20 @@ namespace SeleniumTests
                 imageUrlField.SendKeys("https://via.placeholder.com/150");
                 TestContext.WriteLine($"   ✓ imageUrl ingresado");
 
-                // Tomar screenshot antes de submit
                 TakeScreenshot("BeforeSubmit_ValidData");
 
-                // Click en el botón Submit
                 IWebElement submitButton = driver.FindElement(By.CssSelector("button[type='submit']"));
                 TestContext.WriteLine($"🖱️  Haciendo clic en Submit...");
                 submitButton.Click();
 
-                // Esperar redirección
                 wait.Until(d => !d.Url.Contains("/new"));
                 System.Threading.Thread.Sleep(1000);
 
                 string finalUrl = driver.Url;
                 TestContext.WriteLine($"📍 URL después de submit: {finalUrl}");
 
-                // Tomar screenshot después de submit
                 TakeScreenshot("AfterSubmit_ValidData");
 
-                // Verificar éxito
                 bool success = finalUrl.Contains("/products") || finalUrl.Contains("/product/");
                 Assert.That(success, Is.True,
                     $"La creación debería redirigir a /products o /product/. URL actual: {finalUrl}");
@@ -264,7 +248,7 @@ namespace SeleniumTests
                 driver.Navigate().GoToUrl($"{BASE_URL}/product/new");
                 System.Threading.Thread.Sleep(2000);
 
-                // Dejar productId vacío intencionalmente
+                // Dejar productId vacío
                 FindElementByIdOrName("productId").Clear();
                 FindElementByIdOrName("description").SendKeys("Descripción de prueba");
                 FindElementByIdOrName("price").SendKeys("10.00");
